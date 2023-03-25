@@ -270,6 +270,48 @@ func (p *Process) PercentWithContext(ctx context.Context, interval time.Duration
 	return ret, nil
 }
 
+// If interval is 0, return difference from last call(non-blocking).
+// If interval > 0, wait interval sec and return difference between start and end.
+func (p *Process) PercentAll(interval time.Duration) (float64, error) {
+	return p.PercentAllWithContext(context.Background(), interval)
+}
+
+func (p *Process) PercentAllWithContext(ctx context.Context, interval time.Duration) (float64, float64, float64, float64, error) {
+	cpuTimes, err := p.TimesWithContext(ctx)
+	if err != nil {
+		return 0, 0, 0, 0, err
+	}
+	now := time.Now()
+
+	if interval > 0 {
+		p.lastCPUTimes = cpuTimes
+		p.lastCPUTime = now
+		if err := common.Sleep(ctx, interval); err != nil {
+			return 0, 0, 0, 0, err
+		}
+		cpuTimes, err = p.TimesWithContext(ctx)
+		now = time.Now()
+		if err != nil {
+			return 0, 0, 0, 0, err
+		}
+	} else {
+		if p.lastCPUTimes == nil {
+			// invoked first time
+			p.lastCPUTimes = cpuTimes
+			p.lastCPUTime = now
+			return 0, 0, 0, 0, nil
+		}
+	}
+
+	numcpu := runtime.NumCPU()
+	delta := (now.Sub(p.lastCPUTime).Seconds()) * float64(numcpu)
+	all, user, system, iowait := calculatePercentAll(p.lastCPUTimes, cpuTimes, delta, numcpu)
+	p.lastCPUTimes = cpuTimes
+	p.lastCPUTime = now
+	return all, user, system, iowait, nil
+}
+
+
 // IsRunning returns whether the process is still running or not.
 func (p *Process) IsRunning() (bool, error) {
 	return p.IsRunningWithContext(context.Background())
@@ -303,6 +345,22 @@ func (p *Process) CreateTimeWithContext(ctx context.Context) (int64, error) {
 	createTime, err := p.createTimeWithContext(ctx)
 	p.createTime = createTime
 	return p.createTime, err
+}
+func calculatePercentAll(t1, t2 *cpu.TimesStat, delta float64, numcpu int) (overall_percent, user_percent, system_percent, iowait_percent float64) {
+	overall_percent = 0
+	user_percent = 0
+	system_percent = 0
+	iowait_percent = 0
+	if delta == 0 {
+		return
+	}
+	delta_proc := t2.Total() - t1.Total()
+	f := float64(numcpu^2)
+	overall_percent := ((delta_proc / delta) * 1000) * f
+	user_percent := (((t2.user - t1.user) / delta) * 1000) * f
+	system_percent := (((t2.system - t1.system) / delta) * 1000) * f
+	iowait_percent := (((t2.iowait - t1.iowait) / delta) * 1000) * f
+	return
 }
 
 func calculatePercent(t1, t2 *cpu.TimesStat, delta float64, numcpu int) float64 {
