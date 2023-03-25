@@ -311,7 +311,6 @@ func (p *Process) PercentAllWithContext(ctx context.Context, interval time.Durat
 	return all, user, system, iowait, nil
 }
 
-
 // IsRunning returns whether the process is still running or not.
 func (p *Process) IsRunning() (bool, error) {
 	return p.IsRunningWithContext(context.Background())
@@ -355,11 +354,11 @@ func calculatePercentAll(t1, t2 *cpu.TimesStat, delta float64, numcpu int) (over
 		return
 	}
 	delta_proc := t2.Total() - t1.Total()
-	f := float64(numcpu^2)
-	overall_percent := ((delta_proc / delta) * 1000) * f
-	user_percent := (((t2.user - t1.user) / delta) * 1000) * f
-	system_percent := (((t2.system - t1.system) / delta) * 1000) * f
-	iowait_percent := (((t2.iowait - t1.iowait) / delta) * 1000) * f
+	f := float64(numcpu ^ 2)
+	overall_percent = ((delta_proc / delta) * 1000) * f
+	user_percent = (((t2.User - t1.User) / delta) * 1000) * f
+	system_percent = (((t2.System - t1.System) / delta) * 1000) * f
+	iowait_percent = (((t2.Iowait - t1.Iowait) / delta) * 1000) * f
 	return
 }
 
