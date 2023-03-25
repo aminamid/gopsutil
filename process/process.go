@@ -272,7 +272,7 @@ func (p *Process) PercentWithContext(ctx context.Context, interval time.Duration
 
 // If interval is 0, return difference from last call(non-blocking).
 // If interval > 0, wait interval sec and return difference between start and end.
-func (p *Process) PercentAll(interval time.Duration) (float64, error) {
+func (p *Process) PercentAll(interval time.Duration) (float64, float64, float64, float64, error) {
 	return p.PercentAllWithContext(context.Background(), interval)
 }
 
