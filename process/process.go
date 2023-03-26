@@ -417,7 +417,7 @@ func calculatePercentAll(t1, t2 *cpu.TimesStat, delta float64, numcpu int) (over
 	}
 	delta_proc := t2.Total() - t1.Total()
 	f := float64(numcpu)
-	overall_percent = ((delta_proc / delta) )
+	overall_percent = ((delta_proc / delta) * 100 )
 	user_percent = (((t2.User - t1.User) / delta) * 1000) * f
 	system_percent = (((t2.System - t1.System) / delta) * 1000) * f
 	iowait_percent = (((t2.Iowait - t1.Iowait) / delta) * 1000) * f
