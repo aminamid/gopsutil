@@ -1,6 +1,7 @@
 package process
 
 import (
+	"fmt"
 	"context"
 	"encoding/json"
 	"errors"
@@ -311,8 +312,8 @@ func (p *Process) PercentAllWithContext(ctx context.Context, interval time.Durat
 	p.lastCPUTime = now
 	return all, user, system, iowait, nil
 }
-func (p *Process) PercentAll(interval time.Duration) (float64, float64, float64, float64, error) {
-	return p.PercentAllWithContext(context.Background(), interval)
+func (p *Process) TimeAll(interval time.Duration) (float64, float64, float64, float64, error) {
+	return p.TimeAllWithContext(context.Background(), interval)
 }
 
 func (p *Process) TimeAllWithContext(ctx context.Context, interval time.Duration) (float64, float64, float64, float64, error) {
